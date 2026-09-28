@@ -1,4 +1,5 @@
-const repository=KveStorage.createLocalRepository({getItem:key=>localStorage.getItem(key),setItem:(key,value)=>localStorage.setItem(key,value)});
+const localRepository=KveStorage.createLocalRepository({getItem:key=>localStorage.getItem(key),setItem:(key,value)=>localStorage.setItem(key,value)});
+let repository=localRepository;
 let db=repository.load();
 let filesData=[];
 let ideaPhotoData='';
@@ -154,7 +155,7 @@ function startAddLook(){
   openModal('lookModal');
 }
 
-function saveLook(e){
+async function saveLook(e){
   e.preventDefault();
   commitTag('look');
   if(photoJobs.look)return;
@@ -183,7 +184,7 @@ function saveLook(e){
   }
 
   if(conversionIdea)db.ideas=db.ideas.filter(x=>x.id!==conversionIdea);
-  if(!save())return;
+  if(!(repository.cloud?await saveCloud():save()))return;
 
   closeModal('lookModal');
   resetLookForm();
@@ -237,10 +238,10 @@ function editLook(id){
   openModal('lookModal');
 }
 
-function deleteLook(id){
+async function deleteLook(id){
   if(!confirm('Удалить этот образ?'))return;
   db.looks=db.looks.filter(x=>x.id!==id);
-  if(!save())return;
+  if(!(repository.cloud?await saveCloud():save()))return;
   closeModal('lookDetail');
   renderAll();
 }
@@ -264,7 +265,7 @@ function startAddIdea(){
   openModal('ideaModal');
 }
 
-function saveIdea(e){
+async function saveIdea(e){
   e.preventDefault();
   commitTag('idea');
   if(photoJobs.idea)return;
@@ -285,7 +286,7 @@ function saveIdea(e){
     db.ideas.unshift({id:newId(),...data});
   }
 
-  if(!save()){
+  if(!(repository.cloud?await saveCloud():save())){
     return;
   }
 
@@ -335,15 +336,15 @@ function editIdea(id){
   openModal('ideaModal');
 }
 
-function deleteIdea(id){
+async function deleteIdea(id){
   if(!confirm('Удалить эту идею?'))return;
   db.ideas=db.ideas.filter(x=>x.id!==id);
-  if(!save())return;
+  if(!(repository.cloud?await saveCloud():save()))return;
   closeModal('ideaDetail');
   renderAll();
 }
 
-function ideaToLook(id){
+async function ideaToLook(id){
   const x=db.ideas.find(x=>x.id===id);
   if(!x)return;
 
@@ -368,7 +369,7 @@ function ideaToLook(id){
   });
 
   db.ideas=db.ideas.filter(i=>i.id!==id);
-  if(!save())return;
+  if(!(repository.cloud?await saveCloud():save()))return;
   closeModal('ideaDetail');
   renderAll();
   go('looks');
@@ -399,6 +400,7 @@ function newId(){
 }
 function photoSrc(value){
   if(typeof value!=='string')return '';
+  if(value.startsWith('kve-photo:'))return esc(repository.photo?.(value)||'');
   return /^(data:image\/(jpeg|png|webp|gif|avif);base64,|https?:\/\/)/i.test(value)?esc(value):'';
 }
 function chooseChips(id,items,current,action){
@@ -454,10 +456,10 @@ function renderSearch(){
   if((searchFilter==='all'||searchFilter==='folders')&&folders.length)html+=`<h3 class="resultTitle">Папки · ${folders.length}</h3><div class="folders">${folderCards(folders)}</div>`;
   document.getElementById('searchResults').innerHTML=html||'<div class="empty">Ничего не найдено. Попробуй другое слово или тип контента.</div>';
 }
-function toggleFavorite(id,detail=false){
+async function toggleFavorite(id,detail=false){
   const x=db.looks.find(x=>x.id===id);if(!x)return;
   x.favorite=!x.favorite;
-  if(!save())return;
+  if(!(repository.cloud?await saveCloud():save()))return;
   renderAll();
   if(detail)openLook(id);
 }
@@ -491,7 +493,7 @@ function startFolder(name=null){
 }
 function renderFolderPreview(){document.getElementById('folderPreview').innerHTML=folderCoverDraft?`<img alt="Новая обложка" src="${photoSrc(folderCoverDraft)}">`:'';}
 function clearFolderCover(){photoGeneration.folder++;folderCoverDraft='';renderFolderPreview();}
-function saveFolder(e){
+async function saveFolder(e){
   e.preventDefault();if(photoJobs.folder)return;
   const name=document.getElementById('folderName').value.trim();
   if(!name){alert('Напиши название папки');return;}
@@ -504,19 +506,19 @@ function saveFolder(e){
     delete db.folderCovers[previous];
   }
   if(folderCoverDraft)Object.defineProperty(db.folderCovers,name,{value:folderCoverDraft,writable:true,enumerable:true,configurable:true});
-  if(!save())return;
+  if(!(repository.cloud?await saveCloud():save()))return;
   lookFoldersDraft=lookFoldersDraft.map(f=>f===previous?name:f);
   if(currentFolder===previous)currentFolder=name;
   closeModal('folderModal');renderAll();
   if(previous===null)go('folders');
 }
-function deleteFolder(){
+async function deleteFolder(){
   const name=editingFolder;
   if(name===null||!confirm('Удалить папку «'+name+'»? Все образы останутся в разделе «Образы».'))return;
   db.folders=db.folders.filter(f=>f!==name);
   db.looks.forEach(x=>{x.folders=x.folders.filter(f=>f!==name);x.folder=x.folders[0]||'';});
   delete db.folderCovers[name];
-  if(!save())return;
+  if(!(repository.cloud?await saveCloud():save()))return;
   lookFoldersDraft=lookFoldersDraft.filter(f=>f!==name);
   currentFolder=null;closeModal('folderModal');renderAll();go('folders');
 }
@@ -577,8 +579,8 @@ function renderList(){
       <button class="listIcon" aria-label="Редактировать пункт" onclick="editListItem(${x.id})">✎</button><button class="listIcon" aria-label="Удалить пункт" onclick="deleteListItem(${x.id})">×</button></div>`;
   }).join('')||`<div class="empty">${listFilter==='done'?'Здесь будут выполненные пункты':'Добавь первую вещь кнопкой «Добавить вещь»'}</div>`;
 }
-function toggleListItem(id){const x=db.list.find(x=>x.id===id);if(!x)return;x.done=!x.done;save();renderList();}
-function deleteListItem(id){db.list=db.list.filter(x=>x.id!==id);if(save())renderList();}
+async function toggleListItem(id){const x=db.list.find(x=>x.id===id);if(!x)return;x.done=!x.done;if(repository.cloud)await saveCloud();else save();renderList();}
+async function deleteListItem(id){db.list=db.list.filter(x=>x.id!==id);if(repository.cloud?await saveCloud():save())renderList();}
 function startListItem(id=null){
   const x=id===null?null:db.list.find(x=>x.id===id);if(id!==null&&!x)return;
   editingList=id;photoGeneration.list++;listPhotoDraft=x?.photo||'';
@@ -603,7 +605,7 @@ async function previewListFile(){
   await processPhotos('list',files,p=>{listPhotoDraft=p;renderListPhoto();});
   if(!photoJobs.list)document.getElementById('listPhotoStatus').textContent='Фото необязательно. Перед сохранением оно будет сжато.';
 }
-function saveListItem(e){
+async function saveListItem(e){
   e.preventDefault();if(photoJobs.list)return;
   const text=document.getElementById('listEditInput').value.trim();if(!text){alert('Напиши название вещи');return;}
   const enteredLink=document.getElementById('listLink').value.trim(),link=listUrl(enteredLink);
@@ -615,21 +617,23 @@ function saveListItem(e){
   const isNew=editingList===null;
   if(isNew)db.list.unshift({id:newId(),done:false,...data});
   else{const x=db.list.find(x=>x.id===editingList);if(!x)return;Object.assign(x,data);}
-  if(!save())return;
+  if(!(repository.cloud?await saveCloud():save()))return;
   if(isNew)listFilter='active';
   editingList=null;closeModal('listModal');renderList();go('listPage');
 }
-function saveListEdit(e){saveListItem(e);}
-function exportData(){
-  const url=URL.createObjectURL(new Blob([repository.export()],{type:'application/json'}));
+function saveListEdit(e){return saveListItem(e);}
+async function exportData(){
+  try{
+  const url=URL.createObjectURL(new Blob([await repository.export()],{type:'application/json'}));
   const a=document.createElement('a');a.href=url;a.download='KVE-backup-'+new Date().toISOString().slice(0,10)+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+  }catch(e){alert('Не удалось скачать копию: '+e.message);}
 }
 async function importData(event){
   const input=event.target,file=input.files[0];input.value='';if(!file)return;
   try{
     const next=KveStorage.normalize(JSON.parse(await file.text()));
-    if(!confirm(`Восстановить ${next.looks.length} образов, ${next.ideas.length} идей и ${next.list.length} пунктов List? Это заменит текущие данные этого браузера. Если они нужны, сначала скачай резервную копию.`))return;
-    db=next;if(!save())return;currentFolder=null;editingList=null;activeTag='Все';onlyFavorites=false;renderAll();closeModal('dataModal');go('looks');
+    if(!confirm(`Восстановить ${next.looks.length} образов, ${next.ideas.length} идей и ${next.list.length} пунктов List? Это заменит текущую библиотеку ${repository.cloud?'в облаке':'в этом браузере'}. Если они нужны, сначала скачай резервную копию.`))return;
+    db=next;if(!(repository.cloud?await saveCloud():save()))return;currentFolder=null;editingList=null;activeTag='Все';onlyFavorites=false;renderAll();closeModal('dataModal');go('looks');
   }catch(e){alert('Не удалось прочитать копию. Текущие данные не изменены.');}
 }
 renderAttributeFields('look',{});
@@ -637,8 +641,8 @@ renderAttributeFields('wear',{});
 renderAll();go('looks');
 if(repository.error){const warning=document.getElementById('storageWarning');warning.hidden=false;warning.textContent='Не удалось прочитать данные. Исходная запись не изменена. Скачайте её через меню •••.';}
 window.addEventListener('storage',event=>{
-  if(event.key===KveStorage.KEY||event.key===null){const warning=document.getElementById('storageWarning');warning.hidden=false;warning.textContent='Данные изменились в другой вкладке. Обнови страницу перед сохранением.';}
+  if(!repository.cloud&&(event.key===KveStorage.KEY||event.key===null)){const warning=document.getElementById('storageWarning');warning.hidden=false;warning.textContent='Данные изменились в другой вкладке. Обнови страницу перед сохранением.';}
 });
 document.addEventListener('keydown',event=>{
-  if(event.key==='Escape')document.querySelectorAll('.modal.show,.sheet.show').forEach(el=>closeModal(el.id));
+  if(!window.kveBusy&&event.key==='Escape')document.querySelectorAll('.modal.show,.sheet.show').forEach(el=>closeModal(el.id));
 });
