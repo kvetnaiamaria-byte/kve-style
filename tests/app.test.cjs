@@ -135,3 +135,10 @@ test('legacy List can be enriched and failed photo save preserves data and the d
 test('late item photo cannot replace the next item draft',async()=>{
   const a=app();a.run('startListItem();globalThis.resolvePhoto=null;compressImage=()=>new Promise(resolve=>{globalThis.resolvePhoto=resolve})');const job=a.run("processPhotos('list',[{}],p=>{listPhotoDraft=p})");assert.equal(a.q('#listSaveBtn').disabled,true);a.run('startListItem()');a.w.resolvePhoto(photo);await job;assert.equal(a.run('listPhotoDraft'),'');assert.equal(a.q('#listSaveBtn').disabled,false);a.close();
 });
+
+test('idea photographs stay hidden in lists and search but open in details and editing',()=>{
+  const a=app();assert.equal(a.q('#ideaList img'),null);a.run("ideaFilter='with';renderIdeas()");assert.equal(a.q('#ideaList').children.length,1);assert.equal(a.q('#ideaList img'),null);
+  a.q('#homeSearch').value='рубашка';a.run("searchFilter='ideas';renderLooks()");assert.equal(a.q('#searchResults img'),null);
+  a.run('openIdea(11)');assert.equal(a.q('#ideaDetailBody img').getAttribute('src'),photo);
+  a.run('editIdea(11)');assert.equal(a.q('#ideaPreview img').getAttribute('src'),photo);assert.equal(a.state().ideas[0].photo,photo);a.close();
+});

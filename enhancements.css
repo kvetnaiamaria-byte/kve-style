@@ -54,3 +54,9 @@ input,textarea,select{font-size:16px}
 .listRow.done .listName{text-decoration:line-through;color:var(--muted)}
 .listRow{gap:8px}.listRow .listIcon{padding:4px;min-width:26px}
 #listPreview{grid-template-columns:80px}#listPreview img{aspect-ratio:1}
+
+/* One Cyrillic/Latin UI typeface; icons are independent of platform glyphs. */
+body,button,input,textarea,select{font-family:var(--font-ui)}
+.navIcon{display:block;width:22px;height:22px;flex:none}
+.fab{display:grid;place-items:center;padding:0}
+.fab .navIcon{width:28px;height:28px}

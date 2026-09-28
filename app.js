@@ -410,7 +410,7 @@ function lookCards(arr){
   return arr.map(x=>`<div class="look"><button class="photoButton" aria-label="Открыть образ${x.note?': '+esc(x.note):''}" onclick="openLook(${x.id})">${x.photos[0]?`<img loading="lazy" alt="Фото образа" src="${photoSrc(x.photos[0])}">`:'<div class="placeholder"></div>'}${x.tags[0]?`<span class="badge">${esc(x.tags[0])}</span>`:''}</button><button class="heart ${x.favorite?'selected':''}" aria-label="${x.favorite?'Убрать из избранного':'В избранное'}" aria-pressed="${!!x.favorite}" onclick="toggleFavorite(${x.id})">${x.favorite?'♥':'♡'}</button></div>`).join('');
 }
 function ideaCards(arr){
-  return arr.map(x=>`<button class="idea ideaButton" onclick="openIdea(${x.id})">${x.photo?`<img class="ideaPhoto" alt="Фото идеи" loading="lazy" src="${photoSrc(x.photo)}">`:''}<b>${esc(x.text)}</b><span class="ideaTags">${x.tags.map(t=>`<span class="tag">#${esc(t)}</span>`).join('')}</span></button>`).join('');
+  return arr.map(x=>`<button class="idea ideaButton" onclick="openIdea(${x.id})"><b>${esc(x.text)}</b><span class="ideaTags">${x.tags.map(t=>`<span class="tag">#${esc(t)}</span>`).join('')}</span></button>`).join('');
 }
 function renderChips(){
   if(activeTag!=='Все'&&!allTags().includes(activeTag))activeTag='Все';
