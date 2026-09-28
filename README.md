@@ -38,7 +38,7 @@ See CLOUD.md for the current cloud preview, limits, security and rollout require
 
 Данные тестовой версии на отдельном адресе не появляются автоматически из основного приложения: localStorage привязан к адресу и браузеру. У тестовой версии нет доступа к данным основного сайта. Для проверки с копией своих данных можно восстановить JSON через меню •••. Сама основная версия пока не содержит новой кнопки экспорта.
 
-Аккаунты, облако и синхронизация пока НЕ подключены. На общем браузерном профиле локальные данные общие для всех, кто им пользуется. Это не изоляция аккаунтов. Приложение не отправляет сохранённые фотографии или данные на сервер.
+Cloud is available as an opt-in preview. See CLOUD.md for current behavior, privacy, migration, and remaining SMTP setup. Local browser data is retained until the user explicitly chooses a cloud migration.
 
 ## Проверено
 

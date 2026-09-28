@@ -30,7 +30,7 @@ The test domain cannot read the Telegram/production origin's localStorage. Migra
 
 ## Remaining launch configuration
 
-Owner signup can use Supabase's default mail sender; registration for other people requires custom SMTP. Keep email confirmation enabled. Set Site URL and allow-listed confirmation redirect to:
+Owner signup can use Supabase's default mail sender; registration for other people requires custom SMTP. Keep email confirmation enabled. Site URL and the exact allow-listed confirmation redirect are configured as:
 https://kve-style-git-codex-kve-test-version-kvetnaiamaria.vercel.app/cloud-confirm.html
 
 The UI currently supports signup and password login, not password recovery. Real iPhone and Telegram behavior must still be checked by the owner. No paid upgrades were enabled.
@@ -44,4 +44,4 @@ The SQL is already applied in the new project and recorded in Supabase migration
 - 32 automated tests: existing UI regression suite plus cloud repository and migration behavior.
 - tests/cloud-security.sql: transaction-only fixtures with ROLLBACK for isolation, quota, ownership and revision conflicts.
 - Two temporary Auth users: actual login/upload/read, denial of another user's download, stale revision handling, deletion, concurrent quota reservations, exact 50 MB boundary and actual upload size enforcement.
-- Browser UI: test account login and idea save; physical iPhone verification remains a user step.
+- Browser UI: test account login, idea save, session restore and saved idea after reload, and logout. Physical iPhone verification remains a user step.
