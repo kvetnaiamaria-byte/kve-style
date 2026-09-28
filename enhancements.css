@@ -31,8 +31,6 @@ input,textarea,select{font-size:16px}
 .recommendCard{display:grid;grid-template-columns:90px 1fr;gap:14px;align-items:center;padding:14px;background:white;border:1px solid var(--line);border-radius:18px;margin-top:12px}
 .recommendCard b{font-size:13px;font-weight:500}
 .textButton{background:none;border:0;padding:12px 0;color:var(--navy);font-size:12px;text-align:left}
-.quickAdd{display:flex;gap:8px;align-items:center;margin:20px 0 4px}
-.quickAdd .circle{flex-shrink:0;background:var(--lime)}
 .listRow{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--line);font-size:14px}
 .listRow input{width:22px;height:22px;accent-color:var(--navy);flex-shrink:0}
 .listRow>span{flex:1;overflow-wrap:anywhere;min-width:0;white-space:pre-wrap}

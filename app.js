@@ -560,11 +560,6 @@ function renderRecommendations(){
   if(!Object.values(selected).some(Boolean)){el.innerHTML='<div class="empty">Выбери хотя бы один параметр</div>';return;}
   el.innerHTML=results.length?results.map(r=>`<div class="recommendCard"><div class="recommendPhoto">${lookCards([r.look])}</div><div><b>${r.matches.length===r.total?'Подходит по выбранным параметрам':'Частичное совпадение'}</b><p class="small">${r.matches.length} из ${r.total}: ${r.matches.map(esc).join(' · ')}</p><button class="textButton" onclick="openLook(${r.look.id})">Посмотреть образ →</button></div></div>`).join(''):'<div class="empty">Совпадений пока нет. Попробуй другие параметры или добавь теги и параметры к своим образам.</div>';
 }
-function addListItem(e){
-  e.preventDefault();const input=document.getElementById('listInput');const text=input.value.trim();if(!text)return;
-  db.list.unshift({id:newId(),text,done:false});
-  if(!save())return;input.value='';listFilter='active';renderList();input.focus();
-}
 function listUrl(value){
   const text=String(value||'').trim();if(!text)return '';
   try{const url=new URL(/^[a-z][a-z0-9+.-]*:/i.test(text)?text:'https://'+text);return ['http:','https:'].includes(url.protocol)?url.href:'';}catch(e){return '';}
@@ -580,7 +575,7 @@ function renderList(){
       ${x.photo?`<button class="listPhoto" aria-label="Открыть вещь: ${esc(x.text)}" onclick="editListItem(${x.id})"><img loading="lazy" alt="Фото вещи" src="${photoSrc(x.photo)}"></button>`:''}
       <div class="listContent"><button class="listName" onclick="editListItem(${x.id})">${esc(x.text)}</button>${price?`<div class="listPrice">${esc(price.replace('.',','))} ${currency}</div>`:''}${url?`<a class="listLink" href="${esc(url)}" target="_blank" rel="noopener noreferrer">Открыть ссылку ↗</a>`:''}</div>
       <button class="listIcon" aria-label="Редактировать пункт" onclick="editListItem(${x.id})">✎</button><button class="listIcon" aria-label="Удалить пункт" onclick="deleteListItem(${x.id})">×</button></div>`;
-  }).join('')||`<div class="empty">${listFilter==='done'?'Здесь будут выполненные пункты':'Добавь вещь кнопкой + или запиши короткий план в строке выше'}</div>`;
+  }).join('')||`<div class="empty">${listFilter==='done'?'Здесь будут выполненные пункты':'Добавь первую вещь кнопкой «Добавить вещь»'}</div>`;
 }
 function toggleListItem(id){const x=db.list.find(x=>x.id===id);if(!x)return;x.done=!x.done;save();renderList();}
 function deleteListItem(id){db.list=db.list.filter(x=>x.id!==id);if(save())renderList();}
@@ -589,7 +584,7 @@ function startListItem(id=null){
   editingList=id;photoGeneration.list++;listPhotoDraft=x?.photo||'';
   document.getElementById('listModalTitle').textContent=x?'Изменить вещь':'Добавить вещь';
   document.getElementById('listSaveBtn').textContent=x?'Сохранить изменения':'Добавить в List';
-  document.getElementById('listEditInput').value=x?.text||document.getElementById('listInput').value.trim();
+  document.getElementById('listEditInput').value=x?.text||'';
   document.getElementById('listLink').value=x?.link||'';
   document.getElementById('listPrice').value=x?.price??'';
   document.getElementById('listCurrency').value=x?.currency||'RUB';
@@ -621,7 +616,7 @@ function saveListItem(e){
   if(isNew)db.list.unshift({id:newId(),done:false,...data});
   else{const x=db.list.find(x=>x.id===editingList);if(!x)return;Object.assign(x,data);}
   if(!save())return;
-  if(isNew){document.getElementById('listInput').value='';listFilter='active';}
+  if(isNew)listFilter='active';
   editingList=null;closeModal('listModal');renderList();go('listPage');
 }
 function saveListEdit(e){saveListItem(e);}

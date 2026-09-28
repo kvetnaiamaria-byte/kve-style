@@ -94,9 +94,9 @@ textarea{min-height:82px;resize:vertical;background:white;border-color:var(--lin
 </section>
 
 <section id="listPage" class="page">
-<header><div class="title">List</div><button class="circle" aria-label="Добавить вещь" onclick="startListItem()">＋</button></header>
+<header><div class="title">List</div></header>
 <p class="small">Вещи и маленькие планы для твоего гардероба</p>
-<form class="quickAdd" onsubmit="addListItem(event)"><input id="listInput" class="input" aria-label="Новый пункт" placeholder="Название вещи или план…" maxlength="500" required><button class="circle" aria-label="Добавить пункт">＋</button></form>
+<button class="primary secondary" onclick="startListItem()">Добавить вещь</button>
 <p class="small" id="listCount"></p>
 <div class="chips" id="listFilters"></div><div id="checklist"></div>
 </section>

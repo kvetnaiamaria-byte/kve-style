@@ -70,7 +70,7 @@ test('favorites persist across reload and edit',()=>{
   const b=app(saved);b.run('onlyFavorites=true;renderLooks()');assert.equal(b.q('#grid').children.length,1);b.run('toggleFavorite(10)');assert.equal(b.q('#grid').children.length,0);b.close();
 });
 test('List create, edit, complete, restore, filter, delete, reload',()=>{
-  const a=app();a.q('#listInput').value='Купить ремень';a.run(`addListItem(${submit})`);const id=a.state().list[0].id;
+  const a=app();a.run('startListItem()');a.q('#listEditInput').value='Купить ремень';a.run(`saveListItem(${submit})`);const id=a.state().list[0].id;
   a.run(`editListItem(${id})`);a.q('#listEditInput').value='Подобрать ремень';a.run(`saveListEdit(${submit},${id})`);
   a.run(`toggleListItem(${id})`);assert.equal(a.state().list[0].done,true);a.run("listFilter='done';renderList()");assert.match(a.q('#checklist').textContent,/Подобрать ремень/);
   const saved=a.state();a.close();const b=app(saved);b.run(`toggleListItem(${id})`);assert.equal(b.state().list[0].done,false);b.run(`deleteListItem(${id})`);assert.equal(b.state().list.length,0);b.close();
@@ -89,7 +89,7 @@ test('quota failure leaves idea conversion, deletion and folder rename unchanged
   assert.equal(a.w.localStorage.getItem('kve-v01'),raw);assert.equal(a.w.alerts.length,3);a.close();
 });
 test('corrupt localStorage is not silently overwritten',()=>{
-  const a=app('{broken');assert.equal(a.q('#storageWarning').hidden,false);a.q('#listInput').value='Новое';a.run(`addListItem(${submit})`);assert.equal(a.w.localStorage.getItem('kve-v01'),'{broken');a.close();
+  const a=app('{broken');assert.equal(a.q('#storageWarning').hidden,false);a.run('startListItem()');a.q('#listEditInput').value='Новое';a.run(`saveListItem(${submit})`);assert.equal(a.w.localStorage.getItem('kve-v01'),'{broken');a.close();
 });
 test('conflicting write from a second tab is blocked',()=>{
   const a=app();const other=JSON.stringify({...legacy,looks:[]});a.w.localStorage.setItem('kve-v01',other);a.run('toggleFavorite(10)');assert.equal(a.w.localStorage.getItem('kve-v01'),other);assert.match(a.w.alerts.pop(),/другой вкладке/);a.close();
@@ -102,7 +102,7 @@ test('imported text and cover names cannot inject executable markup',()=>{
   a.run('openLook(1)');assert.equal(a.q('#lookDetailBody script'),null);a.run("startFolder('__proto__')");a.run(`folderCoverDraft=${JSON.stringify(photo)}`);a.run(`saveFolder(${submit})`);assert.equal(a.state().folderCovers.__proto__,photo);a.close();
 });
 test('future schema data is protected from downgrade',()=>{
-  const seed={...legacy,schemaVersion:99};const a=app(seed);a.q('#listInput').value='test';a.run(`addListItem(${submit})`);assert.deepEqual(a.state(),seed);a.close();
+  const seed={...legacy,schemaVersion:99};const a=app(seed);a.run('startListItem()');a.q('#listEditInput').value='test';a.run(`saveListItem(${submit})`);assert.deepEqual(a.state(),seed);a.close();
 });
 
 test('cancelled photo-free conversion cannot delete the idea when editing a different look',()=>{
