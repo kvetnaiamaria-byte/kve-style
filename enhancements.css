@@ -1,0 +1,69 @@
+[hidden]{display:none!important}
+button,input,select,textarea{-webkit-tap-highlight-color:transparent}
+button{cursor:pointer;font-family:inherit}
+button:disabled{opacity:.5;cursor:wait}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--blue);outline-offset:3px}
+input,textarea,select{font-size:16px}
+.app{padding-top:max(18px,env(safe-area-inset-top));padding-bottom:calc(106px + env(safe-area-inset-bottom))}
+.nav{height:calc(74px + env(safe-area-inset-bottom));padding-bottom:calc(8px + env(safe-area-inset-bottom))}
+.fab{bottom:calc(20px + env(safe-area-inset-bottom))}
+.nav button{min-width:54px;min-height:44px;justify-content:center}
+.nav button[aria-current=page]{font-weight:650}
+.modal,.sheet{padding-bottom:calc(94px + env(safe-area-inset-bottom));overflow:auto}
+.panel,.menu{max-height:calc(100dvh - 120px - env(safe-area-inset-bottom));overscroll-behavior:contain}
+.recommendEntry{display:flex;width:100%;align-items:center;justify-content:space-between;text-align:left;border:1px solid #e7ebd6;border-radius:16px;background:#f4f7e0;color:var(--navy);padding:15px 14px;margin-top:14px;font-size:15px}
+.recommendEntry span+span{font-size:11px;color:#61714d}
+.photoButton{padding:0;border:0;background:none;display:block;width:100%;height:100%;color:var(--navy);text-align:left}
+.heart{position:absolute;right:4px;top:4px;width:34px;height:34px;border:0;border-radius:50%;background:#fffdf5e8;color:var(--navy);font-size:22px;display:grid;place-items:center;padding:0}
+.heart.selected{background:var(--lime)}
+.folderButton{padding:0;text-align:left;color:var(--navy);font:inherit;width:100%}
+.folder h3,.folderTitle{overflow-wrap:anywhere}
+.folderTitle{font-size:23px;text-align:center;max-width:70%}
+.cover img{width:100%;height:100%;object-fit:cover}
+.ideaButton{display:block;width:100%;text-align:left;color:var(--navy);font:inherit}
+.idea b{white-space:pre-wrap;overflow-wrap:anywhere}
+.ideaTags{display:block;margin-top:8px}
+.resultTitle{font-size:14px;font-weight:500;margin:18px 0 12px}
+.attributes{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
+.attributes select{padding:12px 8px;font-size:14px;background:white;border-color:var(--line)}
+.lookOptions{margin-top:18px;font-size:13px}
+.lookOptions summary{cursor:pointer;line-height:1.7}
+.recommendCard{display:grid;grid-template-columns:90px 1fr;gap:14px;align-items:center;padding:14px;background:white;border:1px solid var(--line);border-radius:18px;margin-top:12px}
+.recommendCard b{font-size:13px;font-weight:500}
+.textButton{background:none;border:0;padding:12px 0;color:var(--navy);font-size:12px;text-align:left}
+.listRow{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--line);font-size:14px}
+.listRow input{width:22px;height:22px;accent-color:var(--navy);flex-shrink:0}
+.listRow>span{flex:1;overflow-wrap:anywhere;min-width:0;white-space:pre-wrap}
+.listRow.done>span{text-decoration:line-through;color:var(--muted)}
+.listIcon{border:0;background:none;color:var(--muted);font-size:20px;padding:8px;min-height:40px;min-width:32px}
+.listEdit{padding:12px 0;border-bottom:1px solid var(--line)}
+.listEditActions{display:flex;gap:22px}
+.detailPhoto+.detailPhoto{margin-top:8px}
+.storageWarning{position:fixed;top:0;left:0;right:0;background:var(--lime);padding:12px;color:var(--navy);font-size:13px;z-index:200}
+@media(max-width:350px){.recommendEntry span+span{font-size:10px}.attributes{grid-template-columns:1fr}}
+
+.listPriceFields{display:grid;grid-template-columns:1fr 112px;gap:10px}
+.listPhoto{width:58px;height:72px;flex-shrink:0;border:0;background:#f3f4f2;padding:0;border-radius:12px;overflow:hidden}
+.listPhoto img{width:100%;height:100%;object-fit:cover}
+.listContent{flex:1;min-width:0}
+.listName{display:block;padding:0;border:0;background:none;text-align:left;color:var(--navy);font-size:14px;overflow-wrap:anywhere;white-space:pre-wrap;width:100%;line-height:1.4}
+.listPrice{font-size:13px;margin-top:6px;color:var(--navy)}
+.listLink{display:inline-block;font-size:11px;color:var(--navy);padding:8px 0 2px;text-decoration:none}
+.listRow.done .listName{text-decoration:line-through;color:var(--muted)}
+.listRow{gap:8px}.listRow .listIcon{padding:4px;min-width:26px}
+#listPreview{grid-template-columns:80px}#listPreview img{aspect-ratio:1}
+
+/* One Cyrillic/Latin UI typeface; icons are independent of platform glyphs. */
+body,button,input,textarea,select{font-family:var(--font-ui)}
+.navIcon{display:block;width:22px;height:22px;flex:none}
+.fab{display:grid;place-items:center;padding:0}
+.fab .navIcon{width:28px;height:28px}
+
+/* Account controls reuse the existing palette and controls. */
+#cloudLayer{position:fixed;inset:0;z-index:90;overflow:auto;background:var(--cream);padding:32px 20px;}
+#cloudLayer[hidden],#cloudBusy[hidden],#kveApp[hidden]{display:none!important;}
+.cloudCard{max-width:420px;margin:8vh auto;}
+.cloudCard input{width:100%;font:inherit;}
+.cloudCard .primary,#cloudAccount .primary{margin-top:12px;}
+#cloudBusy{position:fixed;inset:0;z-index:200;background:rgba(248,247,239,.9);display:grid;place-items:center;padding:24px;color:var(--navy);font-weight:600;}
+#cloudAccount{margin-bottom:20px;}
