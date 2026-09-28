@@ -43,3 +43,14 @@ input,textarea,select{font-size:16px}
 .detailPhoto+.detailPhoto{margin-top:8px}
 .storageWarning{position:fixed;top:0;left:0;right:0;background:var(--lime);padding:12px;color:var(--navy);font-size:13px;z-index:200}
 @media(max-width:350px){.recommendEntry span+span{font-size:10px}.attributes{grid-template-columns:1fr}}
+
+.listPriceFields{display:grid;grid-template-columns:1fr 112px;gap:10px}
+.listPhoto{width:58px;height:72px;flex-shrink:0;border:0;background:#f3f4f2;padding:0;border-radius:12px;overflow:hidden}
+.listPhoto img{width:100%;height:100%;object-fit:cover}
+.listContent{flex:1;min-width:0}
+.listName{display:block;padding:0;border:0;background:none;text-align:left;color:var(--navy);font-size:14px;overflow-wrap:anywhere;white-space:pre-wrap;width:100%;line-height:1.4}
+.listPrice{font-size:13px;margin-top:6px;color:var(--navy)}
+.listLink{display:inline-block;font-size:11px;color:var(--navy);padding:8px 0 2px;text-decoration:none}
+.listRow.done .listName{text-decoration:line-through;color:var(--muted)}
+.listRow{gap:8px}.listRow .listIcon{padding:4px;min-width:26px}
+#listPreview{grid-template-columns:80px}#listPreview img{aspect-ratio:1}

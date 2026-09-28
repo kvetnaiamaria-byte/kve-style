@@ -94,9 +94,10 @@ textarea{min-height:82px;resize:vertical;background:white;border-color:var(--lin
 </section>
 
 <section id="listPage" class="page">
-<header><div class="title">List</div><span class="small" id="listCount"></span></header>
-<p class="small">Маленькие планы для твоего гардероба</p>
-<form class="quickAdd" onsubmit="addListItem(event)"><input id="listInput" class="input" aria-label="Новый пункт" placeholder="Что хочется сделать?" maxlength="500" required><button class="circle" aria-label="Добавить пункт">＋</button></form>
+<header><div class="title">List</div><button class="circle" aria-label="Добавить вещь" onclick="startListItem()">＋</button></header>
+<p class="small">Вещи и маленькие планы для твоего гардероба</p>
+<form class="quickAdd" onsubmit="addListItem(event)"><input id="listInput" class="input" aria-label="Новый пункт" placeholder="Название вещи или план…" maxlength="500" required><button class="circle" aria-label="Добавить пункт">＋</button></form>
+<p class="small" id="listCount"></p>
 <div class="chips" id="listFilters"></div><div id="checklist"></div>
 </section>
 <section id="folderPage" class="page">
@@ -126,7 +127,7 @@ textarea{min-height:82px;resize:vertical;background:white;border-color:var(--lin
 <div class="menu">
 <div class="action" onclick="startAddLook()">▧ &nbsp; Добавить образ</div>
 <div class="action" onclick="startAddIdea()">✎ &nbsp; Записать идею</div>
-<div class="action">♧ &nbsp; Добавить вещь <span class="small">(скоро)</span></div>
+<div class="action" onclick="toggleSheet();startListItem()">♧ &nbsp; Добавить вещь в List</div>
 <div class="action" onclick="toggleSheet();startFolder()">□ &nbsp; Создать папку</div>
 </div>
 </div>
@@ -174,6 +175,18 @@ textarea{min-height:82px;resize:vertical;background:white;border-color:var(--lin
 <button class="primary" id="folderSaveBtn">Создать папку</button><button type="button" class="primary danger" id="folderDeleteBtn" onclick="deleteFolder()" hidden>Удалить папку</button>
 </form>
 </div>
+
+<div class="modal" id="listModal">
+<form class="panel" onsubmit="saveListItem(event)">
+<header><b id="listModalTitle">Добавить вещь</b><button type="button" class="circle" aria-label="Закрыть вещь" onclick="closeModal('listModal')">×</button></header>
+<div class="field"><label for="listEditInput">Название вещи</label><input class="input" id="listEditInput" placeholder="Например: кожаные лоферы" maxlength="500" required></div>
+<div class="field"><label for="listLink">Ссылка <span class="small">необязательно</span></label><input class="input" id="listLink" type="text" inputmode="url" autocapitalize="off" spellcheck="false" placeholder="https://…"></div>
+<div class="listPriceFields"><div class="field"><label for="listPrice">Цена <span class="small">необязательно</span></label><input class="input" id="listPrice" inputmode="decimal" placeholder="0,00"></div><div class="field"><label for="listCurrency">Валюта</label><select id="listCurrency"><option value="RUB">₽ RUB</option><option value="EUR">€ EUR</option><option value="USD">$ USD</option></select></div></div>
+<label class="upload">＋ Добавить или заменить фото<input id="listFile" type="file" accept="image/*" onchange="previewListFile()"></label>
+<div class="preview" id="listPreview"></div><button type="button" class="textButton" id="listRemovePhoto" onclick="removeListPhoto()" hidden>Удалить фото</button>
+<p class="hint" id="listPhotoStatus" aria-live="polite">Фото необязательно. Перед сохранением оно будет сжато.</p>
+<button class="primary" id="listSaveBtn">Добавить в List</button>
+</form></div>
 
 <div class="modal" id="dataModal"><div class="panel"><header><b>Твои данные</b><button class="circle" onclick="closeModal('dataModal')">×</button></header><p class="detailNote">Образы, фотографии и списки сохраняются только в этом браузере. Аккаунты и синхронизация пока не подключены.</p><p class="small">Скачивай резервную копию перед очисткой браузера или сменой устройства. Она содержит твои фотографии.</p><button class="primary" onclick="exportData()">Скачать резервную копию</button><label class="upload" style="margin-top:12px">Восстановить из копии<input id="importFile" type="file" accept="application/json,.json" onchange="importData(event)"></label><p class="hint">Восстановление заменит данные этого браузера только после подтверждения.</p></div></div>
 <div id="storageWarning" class="storageWarning" role="alert" hidden></div>

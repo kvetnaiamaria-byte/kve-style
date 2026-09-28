@@ -388,8 +388,9 @@ function renderAll(){
 let ideaFilter='all', searchFilter='all', listFilter='active', onlyFavorites=false;
 let currentFolder=null, editingFolder=null, folderCoverDraft='', conversionIdea=null;
 let editingList=null;
-const photoJobs={look:0,idea:0,folder:0};
-const photoGeneration={look:0,idea:0,folder:0};
+const photoJobs={look:0,idea:0,folder:0,list:0};
+const photoGeneration={look:0,idea:0,folder:0,list:0};
+let listPhotoDraft='';
 function newId(){
   let id=Date.now();
   const ids=new Set([...db.looks,...db.ideas,...db.list].map(x=>x.id));
@@ -564,16 +565,66 @@ function addListItem(e){
   db.list.unshift({id:newId(),text,done:false});
   if(!save())return;input.value='';listFilter='active';renderList();input.focus();
 }
+function listUrl(value){
+  const text=String(value||'').trim();if(!text)return '';
+  try{const url=new URL(/^[a-z][a-z0-9+.-]*:/i.test(text)?text:'https://'+text);return ['http:','https:'].includes(url.protocol)?url.href:'';}catch(e){return '';}
+}
 function renderList(){
-  chooseChips('listFilters',[['active','Активные'],['done','Выполненные'],['all','Все']],listFilter,v=>{listFilter=v;editingList=null;renderList();});
+  chooseChips('listFilters',[['active','Активные'],['done','Выполненные'],['all','Все']],listFilter,v=>{listFilter=v;renderList();});
   document.getElementById('listCount').textContent=db.list.filter(x=>!x.done).length+' активных';
   const items=db.list.filter(x=>listFilter==='all'||(listFilter==='done'?x.done:!x.done));
-  document.getElementById('checklist').innerHTML=items.map(x=>editingList===x.id?`<form class="listEdit" onsubmit="saveListEdit(event,${x.id})"><input class="input" id="listEditInput" value="${esc(x.text)}" maxlength="500" aria-label="Текст пункта" required><div class="listEditActions"><button class="textButton">Сохранить</button><button type="button" class="textButton" onclick="editingList=null;renderList()">Отмена</button></div></form>`:`<div class="listRow ${x.done?'done':''}"><input type="checkbox" aria-label="${x.done?'Вернуть в активные':'Выполнить'}: ${esc(x.text)}" ${x.done?'checked':''} onchange="toggleListItem(${x.id})"><span>${esc(x.text)}</span><button class="listIcon" aria-label="Редактировать пункт" onclick="editListItem(${x.id})">✎</button><button class="listIcon" aria-label="Удалить пункт" onclick="deleteListItem(${x.id})">×</button></div>`).join('')||`<div class="empty">${listFilter==='done'?'Здесь будут выполненные пункты':'Добавь маленький план в строке выше'}</div>`;
+  document.getElementById('checklist').innerHTML=items.map(x=>{
+    const url=listUrl(x.link);const price=x.price!==undefined&&x.price!==''?String(x.price):'';
+    const currency={RUB:'₽',EUR:'€',USD:'$'}[x.currency]||esc(x.currency||'₽');
+    return `<div class="listRow ${x.done?'done':''}"><input type="checkbox" aria-label="${x.done?'Вернуть в активные':'Выполнить'}: ${esc(x.text)}" ${x.done?'checked':''} onchange="toggleListItem(${x.id})">
+      ${x.photo?`<button class="listPhoto" aria-label="Открыть вещь: ${esc(x.text)}" onclick="editListItem(${x.id})"><img loading="lazy" alt="Фото вещи" src="${photoSrc(x.photo)}"></button>`:''}
+      <div class="listContent"><button class="listName" onclick="editListItem(${x.id})">${esc(x.text)}</button>${price?`<div class="listPrice">${esc(price.replace('.',','))} ${currency}</div>`:''}${url?`<a class="listLink" href="${esc(url)}" target="_blank" rel="noopener noreferrer">Открыть ссылку ↗</a>`:''}</div>
+      <button class="listIcon" aria-label="Редактировать пункт" onclick="editListItem(${x.id})">✎</button><button class="listIcon" aria-label="Удалить пункт" onclick="deleteListItem(${x.id})">×</button></div>`;
+  }).join('')||`<div class="empty">${listFilter==='done'?'Здесь будут выполненные пункты':'Добавь вещь кнопкой + или запиши короткий план в строке выше'}</div>`;
 }
 function toggleListItem(id){const x=db.list.find(x=>x.id===id);if(!x)return;x.done=!x.done;save();renderList();}
 function deleteListItem(id){db.list=db.list.filter(x=>x.id!==id);if(save())renderList();}
-function editListItem(id){editingList=id;renderList();document.getElementById('listEditInput').focus();}
-function saveListEdit(e,id){e.preventDefault();const text=document.getElementById('listEditInput').value.trim();if(!text)return;const x=db.list.find(x=>x.id===id);if(!x)return;x.text=text;if(save()){editingList=null;renderList();}}
+function startListItem(id=null){
+  const x=id===null?null:db.list.find(x=>x.id===id);if(id!==null&&!x)return;
+  editingList=id;photoGeneration.list++;listPhotoDraft=x?.photo||'';
+  document.getElementById('listModalTitle').textContent=x?'Изменить вещь':'Добавить вещь';
+  document.getElementById('listSaveBtn').textContent=x?'Сохранить изменения':'Добавить в List';
+  document.getElementById('listEditInput').value=x?.text||document.getElementById('listInput').value.trim();
+  document.getElementById('listLink').value=x?.link||'';
+  document.getElementById('listPrice').value=x?.price??'';
+  document.getElementById('listCurrency').value=x?.currency||'RUB';
+  renderListPhoto();openModal('listModal');
+}
+function editListItem(id){startListItem(id);}
+function renderListPhoto(){
+  document.getElementById('listPreview').innerHTML=listPhotoDraft?`<img alt="Фото вещи" src="${photoSrc(listPhotoDraft)}">`:'';
+  document.getElementById('listRemovePhoto').hidden=!listPhotoDraft;
+}
+function removeListPhoto(){photoGeneration.list++;listPhotoDraft='';renderListPhoto();}
+async function previewListFile(){
+  const input=document.getElementById('listFile');const files=[...input.files].slice(0,1);input.value='';if(!files.length)return;
+  photoGeneration.list++;
+  document.getElementById('listPhotoStatus').textContent='Обрабатываем фото…';
+  await processPhotos('list',files,p=>{listPhotoDraft=p;renderListPhoto();});
+  if(!photoJobs.list)document.getElementById('listPhotoStatus').textContent='Фото необязательно. Перед сохранением оно будет сжато.';
+}
+function saveListItem(e){
+  e.preventDefault();if(photoJobs.list)return;
+  const text=document.getElementById('listEditInput').value.trim();if(!text){alert('Напиши название вещи');return;}
+  const enteredLink=document.getElementById('listLink').value.trim(),link=listUrl(enteredLink);
+  if(enteredLink&&!link){alert('Добавь корректную ссылку, которая начинается с https:// или http://');return;}
+  const price=document.getElementById('listPrice').value.trim().replace(/\s/g,'').replace(',','.');
+  if(price&&!/^\d+(\.\d{1,2})?$/.test(price)){alert('Впиши цену числом, например 4990 или 4990,50');return;}
+  const currency=document.getElementById('listCurrency').value;
+  const data={text,link,price,currency,photo:listPhotoDraft};
+  const isNew=editingList===null;
+  if(isNew)db.list.unshift({id:newId(),done:false,...data});
+  else{const x=db.list.find(x=>x.id===editingList);if(!x)return;Object.assign(x,data);}
+  if(!save())return;
+  if(isNew){document.getElementById('listInput').value='';listFilter='active';}
+  editingList=null;closeModal('listModal');renderList();go('listPage');
+}
+function saveListEdit(e){saveListItem(e);}
 function exportData(){
   const url=URL.createObjectURL(new Blob([repository.export()],{type:'application/json'}));
   const a=document.createElement('a');a.href=url;a.download='KVE-backup-'+new Date().toISOString().slice(0,10)+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);

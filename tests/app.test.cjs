@@ -119,3 +119,19 @@ test('photo processing disables save and late results cannot leak into a new dra
   const job=a.run("processPhotos('look',[{}],p=>filesData.push(p))");assert.equal(a.q('#lookSaveBtn').disabled,true);
   a.run('resetLookForm()');a.w.resolvePhoto(photo);await job;assert.equal(a.run('filesData.length'),0);assert.equal(a.q('#lookSaveBtn').disabled,false);a.close();
 });
+
+test('List item stores link, price, currency and photo across reload and completion',()=>{
+  const a=app();a.run('startListItem()');a.q('#listEditInput').value='Лоферы';a.q('#listLink').value='example.com/loafers';a.q('#listPrice').value='4 990,50';a.q('#listCurrency').value='EUR';a.run(`listPhotoDraft=${JSON.stringify(photo)}`);a.run(`saveListItem(${submit})`);
+  const x=a.state().list[0];assert.equal(x.link,'https://example.com/loafers');assert.equal(x.price,'4990.50');assert.equal(x.photo,photo);assert.equal(x.currency,'EUR');assert.equal(a.q('#checklist a').getAttribute('rel'),'noopener noreferrer');
+  const b=app(a.state());b.run(`toggleListItem(${x.id});editListItem(${x.id})`);assert.equal(b.q('#listPrice').value,'4990.50');assert.equal(b.q('#listLink').value,x.link);assert.equal(b.q('#listPreview img').getAttribute('src'),photo);b.q('#listEditInput').value='Новые лоферы';b.run(`saveListItem(${submit})`);assert.equal(b.state().list[0].done,true);assert.equal(b.state().list[0].photo,photo);a.close();b.close();
+});
+test('List blocks invalid price and executable links; photo and optional fields can be removed',()=>{
+  const a=app();a.run('startListItem()');a.q('#listEditInput').value='Ремень';a.q('#listLink').value='javascript:alert(1)';a.run(`saveListItem(${submit})`);assert.match(a.w.alerts.pop(),/ссылку/);a.q('#listLink').value='';a.q('#listPrice').value='-100';a.run(`saveListItem(${submit})`);assert.match(a.w.alerts.pop(),/цену/);a.q('#listPrice').value='0';a.run(`listPhotoDraft=${JSON.stringify(photo)}`);a.run(`saveListItem(${submit})`);const id=a.state().list[0].id;assert.match(a.q('#checklist').textContent,/0 ₽/);
+  a.run(`editListItem(${id});removeListPhoto()`);a.q('#listPrice').value='';a.run(`saveListItem(${submit})`);assert.equal(a.state().list[0].photo,'');assert.equal(a.state().list[0].price,'');a.close();
+});
+test('legacy List can be enriched and failed photo save preserves data and the draft',()=>{
+  const a=app({...legacy,list:[{id:99,text:'Старый пункт',done:true}]});a.run('editListItem(99)');a.q('#listLink').value='https://example.com';a.q('#listPrice').value='1500';a.run(`listPhotoDraft=${JSON.stringify(photo)}`);failWrites(a);a.run(`saveListItem(${submit})`);assert.equal(a.state().list[0].link,undefined);assert.equal(a.run('listPhotoDraft'),photo);assert.equal(a.q('#listModal').classList.contains('show'),true);a.close();
+});
+test('late item photo cannot replace the next item draft',async()=>{
+  const a=app();a.run('startListItem();globalThis.resolvePhoto=null;compressImage=()=>new Promise(resolve=>{globalThis.resolvePhoto=resolve})');const job=a.run("processPhotos('list',[{}],p=>{listPhotoDraft=p})");assert.equal(a.q('#listSaveBtn').disabled,true);a.run('startListItem()');a.w.resolvePhoto(photo);await job;assert.equal(a.run('listPhotoDraft'),'');assert.equal(a.q('#listSaveBtn').disabled,false);a.close();
+});

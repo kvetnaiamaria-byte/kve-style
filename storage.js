@@ -26,6 +26,11 @@
       }
     }
     if (data.list.some(x => !x || !Number.isSafeInteger(x.id) || typeof x.text !== 'string')) throw new Error('Некорректный List');
+    for (const x of data.list) {
+      for (const key of ['link', 'price', 'currency', 'photo']) {
+        if (x[key] !== undefined && typeof x[key] !== 'string') throw new Error('Некорректные данные вещи');
+      }
+    }
     return data;
   }
   function createLocalRepository(storage) {
