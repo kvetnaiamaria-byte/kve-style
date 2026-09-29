@@ -59,3 +59,10 @@ Mapping and short-lived replay receipts are server-only (RLS with no client poli
 Validation: cryptographic tampering/wrong bot/stale/future/duplicate-field tests; server session-exchange and UID-mismatch tests; PostgreSQL privilege/uniqueness/replay tests; existing app and storage regressions. Real successful Telegram login and owner linking require manual verification from the bot before merging the preview. Rollback frontend: set `telegramEnabled:false`; existing email login and data continue to work. Do not delete identity mappings to roll back.
 
 Security Advisor's no-policy notices on the two Telegram tables are intentional: only the server may access them ([explanation](https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy)). Existing leaked-password-protection warning is unchanged; the new Telegram path does not use passwords.
+
+
+## Telegram bot welcome
+
+`supabase/functions/telegram-bot` answers private messages with a short KVÉ introduction and a Web App button. Deployment requires the production secret `TELEGRAM_BOT_TOKEN`; it must only be entered in Supabase Edge Function Secrets and must never be committed or pasted into chat. A GET request after deployment idempotently configures the webhook, `/start`, `/app`, `/help`, the bot description, short description, and menu button using fixed values from source code.
+
+Telegram webhook requests are authenticated with a secret derived from the bot token and compared without early exit. The endpoint is public at the gateway (`verify_jwt=false`) because Telegram cannot send a Supabase JWT; all unverified requests are rejected before their body is processed. `kve_bot_updates` is server-only and records update IDs so Telegram retries cannot send duplicate replies. A failed outbound reply releases its receipt for retry; successful receipts older than 30 days are deleted. The bot stays quiet in groups. The bot token and webhook secret are never returned or logged.
