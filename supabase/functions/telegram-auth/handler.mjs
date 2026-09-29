@@ -1,6 +1,10 @@
 import {verifyTelegram} from './verify.mjs';
 const BOT_ID='8904793828';
-const ORIGINS=new Set(['https://kve-style.vercel.app','https://kve-style-git-codex-telegram-login-kvetnaiamaria.vercel.app']);
+const ORIGINS=new Set([
+  'https://kve-style.vercel.app',
+  'https://kve-style-git-codex-kve-test-version-kvetnaiamaria.vercel.app',
+  'https://kve-style-git-codex-telegram-login-kvetnaiamaria.vercel.app'
+]);
 const messages={INVALID_TELEGRAM:'Открой KVÉ через @archive_style_bot в Telegram.',EXPIRED_TELEGRAM:'Закрой мини-приложение и открой его снова: время входа истекло.',KVE_TG_REPLAY:'Закрой мини-приложение и открой его снова для входа.',KVE_TG_CONFLICT:'Этот Telegram или аккаунт уже связан с другой библиотекой. Войди прежним способом.',KVE_TG_RATE:'Подожди немного и открой приложение снова.',NEED_ACCOUNT:'Сначала войди в существующий аккаунт по почте.'};
 export function createHandler({admin,sessionClient,verify=verifyTelegram}){
   return async req=>{
