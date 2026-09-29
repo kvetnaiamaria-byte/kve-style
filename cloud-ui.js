@@ -18,8 +18,8 @@ function cloudGate(){
   document.getElementById('kveApp').hidden=true;
   const layer=document.getElementById('cloudLayer');layer.hidden=false;
   layer.innerHTML=`<div class="cloudCard"><div class="brand">KVÉ</div><h2>Твоя библиотека в облаке</h2><p class="small">Войди, чтобы открывать свои образы на разных устройствах.</p>
-  <form id="cloudLogin"><div class="field"><label for="cloudEmail">Почта</label><input id="cloudEmail" type="email" autocomplete="email" required></div><div class="field"><label for="cloudPassword">Пароль</label><input id="cloudPassword" type="password" minlength="8" autocomplete="current-password" required></div><button class="primary" type="submit">Войти</button></form>
-  <button id="cloudSignup" class="primary secondary">Создать аккаунт</button><p id="cloudMessage" role="status" class="small"></p><p class="small">Тестовый запуск: регистрация пока доступна владельцу. Приглашения подключим после настройки писем.</p><button class="textButton" id="cloudLocal">Вернуться к данным этого браузера</button></div>`;
+  ${telegramGate()}<form id="cloudLogin"><div class="field"><label for="cloudEmail">Почта</label><input id="cloudEmail" type="email" autocomplete="email" required></div><div class="field"><label for="cloudPassword">Пароль</label><input id="cloudPassword" type="password" minlength="8" autocomplete="current-password" required></div><button class="primary" type="submit">Войти</button></form>
+  <button id="cloudSignup" class="primary secondary" ${telegramEnabled()?'hidden':''}>Создать аккаунт</button><p id="cloudMessage" role="status" class="small"></p><p class="small">Регистрация по почте пока доступна только владельцу. Для нового аккаунта используй Telegram.</p><button class="textButton" id="cloudLocal">Вернуться к данным этого браузера</button></div>`;
   document.getElementById('cloudLogin').onsubmit=e=>{e.preventDefault();cloudAuthenticate(false);};
   document.getElementById('cloudSignup').onclick=()=>cloudAuthenticate(true);
   document.getElementById('cloudLocal').onclick=cloudUseLocal;
@@ -53,7 +53,7 @@ async function cloudConnect(){
 function cloudAccount(){
   const el=document.getElementById('cloudAccount');
   if(repository.cloud){
-    el.innerHTML=`<p class="detailNote"><b>Облако подключено</b><br>${esc(cloudUser.email)}</p><p id="cloudUsage" class="small">Считаем объём…</p><button class="primary secondary" onclick="cloudRefresh(true)">Обновить библиотеку</button><button class="primary secondary" onclick="cloudMigrate()">Перенести данные этого браузера</button><button class="textButton" onclick="cloudLogout()">Выйти из аккаунта</button>`;
+    el.innerHTML=`<p class="detailNote"><b>Облако подключено</b><br>${esc(telegramAccountLabel(cloudUser))}</p><p id="cloudUsage" class="small">Считаем объём…</p><button class="primary secondary" onclick="cloudRefresh(true)">Обновить библиотеку</button><button class="primary secondary" onclick="cloudMigrate()">Перенести данные этого браузера</button>${telegramEnabled()&&telegramAvailable()?'<button class="primary secondary" onclick="telegramAuthenticate(\'link\')">Привязать Telegram к этой библиотеке</button>':''}<button class="textButton" onclick="cloudLogout()">Выйти из аккаунта</button>`;
     document.getElementById('storageDescription').textContent='Эта библиотека сохраняется в твоём аккаунте. Для загрузки и сохранения нужен интернет. Резервная копия включает фотографии.';
   }else{
     el.innerHTML='<button class="primary secondary" onclick="cloudGate()">Подключить облако</button>';
@@ -91,7 +91,7 @@ async function cloudMigrate(){
     if(bound&&bound!==cloudUser.id)throw new Error('Эта библиотека уже привязана к другому аккаунту. Войди в него для переноса.');
     const next=await KveCloud.mergeLegacy(db,legacy,raw);
     if(!next){alert('Эта версия библиотеки уже перенесена.');return;}
-    if(!confirm(`Перенести ${legacy.looks.length} образов, ${legacy.ideas.length} идей и ${legacy.list.length} вещей в аккаунт ${cloudUser.email}? Подтверди, что это твои данные. Сначала будет скачана резервная копия. Старые данные останутся в браузере.`))return;
+    if(!confirm(`Перенести ${legacy.looks.length} образов, ${legacy.ideas.length} идей и ${legacy.list.length} вещей в аккаунт ${telegramAccountLabel(cloudUser)}? Подтверди, что это твои данные. Сначала будет скачана резервная копия. Старые данные останутся в браузере.`))return;
     const url=URL.createObjectURL(new Blob([raw],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='KVE-before-cloud.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),10000);
     // Bind before upload, so a failed migration cannot later be claimed by another account.
     await cloudSessionStore.setItem('kve-legacy-owner',cloudUser.id);
@@ -116,7 +116,7 @@ async function cloudRefresh(manual=false){
     const mode=await cloudSessionStore.getItem('kve-mode');
     const {data,error}=await cloudClient.auth.getSession();if(error)throw error;
     if(data.session){cloudBusy(true,'Открываем облако…');await cloudConnect();}
-    else if(mode==='cloud')cloudGate();else{document.getElementById('kveApp').hidden=false;cloudAccount();}
+    else if(mode==='cloud'||(telegramEnabled()&&telegramAvailable()))cloudGate();else{document.getElementById('kveApp').hidden=false;cloudAccount();}
   }catch(e){cloudGate();cloudMessage('Облако недоступно: '+e.message);}
   finally{cloudBusy(false);}
   cloudClient.auth.onAuthStateChange((event,session)=>{
